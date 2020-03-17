@@ -43,3 +43,6 @@ npm-debug.log
 
 # File for handling environment variables using hab
 .envrc
+
+# Remove temporary files from vscode plugin
+.elixir_ls/*
