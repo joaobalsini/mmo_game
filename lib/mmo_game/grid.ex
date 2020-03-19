@@ -1,4 +1,14 @@
 defmodule MmoGame.Grid do
+  @moduledoc """
+  Grid related functions.
+  """
+
+  @type t :: %__MODULE__{
+          rows: integer(),
+          columns: integer(),
+          walls: list({integer(), integer()})
+        }
+
   @enforce_keys [:rows, :columns, :walls]
   defstruct @enforce_keys
 
