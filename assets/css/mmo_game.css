@@ -1,0 +1,22 @@
+table {
+  table-layout: fixed;
+  width: 750px;
+  height: 750px;
+  border:0px;
+}
+
+table tr {
+  border: 0px;
+}
+
+table tr td {
+  border: 1px solid black;
+  width: 75px;
+  height: 75px;
+  padding:0px;
+  margin:0px;
+}
+
+td.wall {
+  background-color: #555;
+}

@@ -1,0 +1,16 @@
+
+<%= if @error do %>
+<p class="alert alert-danger"><%= @error%></p>
+<% else %>
+  <table>
+  <%= Enum.map(@drawn_grid, fn row -> %>
+    <tr>
+      <%= Enum.map(row, fn column ->  %>
+        <td class="<%= classnames(%{ "wall" => column.wall }) %>"></td>
+      
+      <% end) %>
+    </tr>
+  <% end) %>
+  </table>
+<% end %>
+

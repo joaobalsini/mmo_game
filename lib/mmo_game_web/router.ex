@@ -17,6 +17,7 @@ defmodule MmoGameWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    get "/game", GameController, :index
   end
 
   # Other scopes may use custom stacks.
