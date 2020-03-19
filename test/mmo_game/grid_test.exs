@@ -100,4 +100,45 @@ defmodule MmoGame.GridTest do
       assert Grid.wall?(grid, {"a", 0}) == {:error, :invalid_coordinate}
     end
   end
+
+  describe("draw/1") do
+    test "draws a valid grid properly" do
+      walls = [{0, 0}, {0, 9}, {9, 0}]
+      rows = 10
+      columns = 10
+
+      {:ok, grid} =
+        Grid.new(%{
+          rows: rows,
+          columns: columns,
+          walls: walls
+        })
+
+      assert {:ok, drawn_grid} = Grid.draw(grid)
+
+      Enum.each(0..(rows - 1), fn row ->
+        Enum.each(0..(columns - 1), fn column ->
+          element =
+            drawn_grid
+            |> Enum.at(row)
+            |> Enum.at(column)
+
+          case Grid.wall?(grid, {row, column}) do
+            {:ok, true} ->
+              assert element == %{wall: true}
+
+            {:ok, false} ->
+              assert element == %{wall: false}
+          end
+        end)
+      end)
+    end
+
+    test "returns {:error, :invalid_grid} if passed param is not a grid" do
+      assert {:error, :invalid_grid} = Grid.draw(0)
+      assert {:error, :invalid_grid} = Grid.draw("a")
+      assert {:error, :invalid_grid} = Grid.draw(%{})
+      assert {:error, :invalid_grid} = Grid.draw(nil)
+    end
+  end
 end

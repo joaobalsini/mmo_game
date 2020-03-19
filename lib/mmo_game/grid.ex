@@ -6,7 +6,7 @@ defmodule MmoGame.Grid do
   @type t :: %__MODULE__{
           rows: integer(),
           columns: integer(),
-          walls: list({integer(), integer()})
+          walls: map()
         }
 
   @enforce_keys [:rows, :columns, :walls]
@@ -14,8 +14,12 @@ defmodule MmoGame.Grid do
 
   alias MmoGame.Grid
 
-  @spec new(any()) ::
-          {:error, :invalid_grid_parameters | :invalid_wall_coordinate} | {:ok, MmoGame.Grid.t()}
+  @spec new(%{
+          rows: integer(),
+          columns: integer(),
+          walls: list({integer(), integer()})
+        }) ::
+          {:error, :invalid_grid_parameters | :invalid_wall_coordinate} | {:ok, t()}
   def new(%{rows: rows, columns: columns, walls: walls})
       when is_integer(rows) and is_integer(columns) and is_list(walls) and
              rows > 0 and columns > 0 do
@@ -25,7 +29,24 @@ defmodule MmoGame.Grid do
 
   def new(_), do: {:error, :invalid_grid_parameters}
 
-  @spec wall?(any, any) :: {:error, :invalid_coordinate} | {:ok, boolean}
+  @spec draw(t()) :: {:ok, [[%{wall: boolean()}]]} | {:error, :invalid_grid}
+  def draw(%Grid{rows: rows, columns: columns} = grid) do
+    grid =
+      Enum.map(0..(rows - 1), fn row ->
+        Enum.map(0..(columns - 1), fn col ->
+          case wall?(grid, {row, col}) do
+            {:ok, true} -> %{wall: true}
+            {:ok, false} -> %{wall: false}
+          end
+        end)
+      end)
+
+    {:ok, grid}
+  end
+
+  def draw(_), do: {:error, :invalid_grid}
+
+  @spec wall?(t(), {integer(), integer()}) :: {:error, :invalid_coordinate} | {:ok, boolean}
   def wall?(
         %Grid{rows: rows, columns: columns, walls: walls},
         {row, column}
@@ -70,9 +91,4 @@ defmodule MmoGame.Grid do
          _coordinate
        ),
        do: {:halt, {:error, :invalid_wall_coordinate}}
-
-  # def draw_grid(grid) do
-
-  # def default_grid() do
-  # end
 end
