@@ -45,4 +45,7 @@ npm-debug.log
 .envrc
 
 # Remove temporary files from vscode plugin
-.elixir_ls/*
+/.elixir_ls
+
+# Dialyzer files
+/priv/plts
