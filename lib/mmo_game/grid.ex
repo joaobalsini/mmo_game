@@ -46,6 +46,38 @@ defmodule MmoGame.Grid do
 
   def draw(_), do: {:error, :invalid_grid}
 
+  def default_grid() do
+    rows = 10
+    colums = 10
+
+    walls =
+      Enum.map(0..(rows - 1), fn row ->
+        Enum.map(0..(colums - 1), fn column ->
+          case {row, column} do
+            {row, _} when row in [0, 9] ->
+              %{row: row, column: column, wall: true}
+
+            {_, column} when column in [0, 9] ->
+              %{row: row, column: column, wall: true}
+
+            {4, column} when column in [1, 3, 4, 5, 6, 9] ->
+              %{row: row, column: column, wall: true}
+
+            {row, 4} when row in [4, 5, 6, 7, 9] ->
+              %{row: row, column: column, wall: true}
+
+            _ ->
+              %{row: row, column: column, wall: false}
+          end
+        end)
+      end)
+      |> List.flatten()
+      |> Enum.filter(& &1.wall)
+      |> Enum.map(&{&1.row, &1.column})
+
+    new(%{rows: rows, columns: colums, walls: walls})
+  end
+
   @spec wall?(t(), {integer(), integer()}) :: {:error, :invalid_coordinate} | {:ok, boolean}
   def wall?(
         %Grid{rows: rows, columns: columns, walls: walls},
