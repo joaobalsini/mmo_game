@@ -141,4 +141,30 @@ defmodule MmoGame.GridTest do
       assert {:error, :invalid_grid} = Grid.draw(nil)
     end
   end
+
+  describe "random_non_wall_position/1" do
+    test "returns a random position" do
+      walls = [{0, 0}, {0, 9}, {9, 0}]
+      rows = 10
+      columns = 10
+
+      {:ok, grid} =
+        Grid.new(%{
+          rows: rows,
+          columns: columns,
+          walls: walls
+        })
+
+      {:ok, first_guess} = Grid.random_non_wall_position(grid)
+      {:ok, second_guess} = Grid.random_non_wall_position(grid)
+      assert first_guess != second_guess
+    end
+
+    test "return {:error, :invalid_grid} if passed param is not a grid" do
+      assert {:error, :invalid_grid} = Grid.random_non_wall_position(0)
+      assert {:error, :invalid_grid} = Grid.random_non_wall_position("a")
+      assert {:error, :invalid_grid} = Grid.random_non_wall_position(%{})
+      assert {:error, :invalid_grid} = Grid.random_non_wall_position(nil)
+    end
+  end
 end

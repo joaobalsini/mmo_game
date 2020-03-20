@@ -47,10 +47,26 @@ defmodule MmoGame.Grid do
 
   def draw(_), do: {:error, :invalid_grid}
 
+  # Used for random position on the board
+  defp draw_with_coordinates!(%Grid{rows: rows, columns: columns} = grid) do
+    Enum.map(0..(rows - 1), fn row ->
+      Enum.map(0..(columns - 1), fn col ->
+        wall_map_with_coordinates!(grid, {row, col})
+      end)
+    end)
+  end
+
   defp wall_map_without_coordinates!(%Grid{} = grid, {row, col}) do
     case wall?(grid, {row, col}) do
       {:ok, true} -> %{wall: true}
       {:ok, false} -> %{wall: false}
+    end
+  end
+
+  defp wall_map_with_coordinates!(%Grid{} = grid, {row, col}) do
+    case wall?(grid, {row, col}) do
+      {:ok, true} -> %{row: row, col: col, wall: true}
+      {:ok, false} -> %{row: row, col: col, wall: false}
     end
   end
 
@@ -92,6 +108,21 @@ defmodule MmoGame.Grid do
         %{row: row, column: column, wall: false}
     end
   end
+
+  @spec random_non_wall_position(MmoGame.Grid.t()) ::
+          {:ok, coordinate()} | {:error, :invalid_grid}
+  def random_non_wall_position(%Grid{} = grid) do
+    map_element =
+      grid
+      |> draw_with_coordinates!()
+      |> List.flatten()
+      |> Enum.filter(&(!&1.wall))
+      |> Enum.random()
+
+    {:ok, {map_element.row, map_element.col}}
+  end
+
+  def random_non_wall_position(_), do: {:error, :invalid_grid}
 
   @spec wall?(t(), coordinate()) :: {:error, :invalid_coordinate} | {:ok, boolean}
   def wall?(
