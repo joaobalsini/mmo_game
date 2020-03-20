@@ -4,10 +4,14 @@ defmodule MmoGame.Grid do
   """
 
   @type t :: %__MODULE__{
-          rows: integer(),
-          columns: integer(),
-          walls: map()
+          rows: pos_integer(),
+          columns: pos_integer(),
+          walls: %{optional(coordinate()) => boolean()}
         }
+
+  @type row :: non_neg_integer()
+  @type col :: non_neg_integer()
+  @type coordinate :: {row, col}
 
   @enforce_keys [:rows, :columns, :walls]
   defstruct @enforce_keys
@@ -15,9 +19,9 @@ defmodule MmoGame.Grid do
   alias MmoGame.Grid
 
   @spec new(%{
-          rows: integer(),
-          columns: integer(),
-          walls: list({integer(), integer()})
+          rows: pos_integer(),
+          columns: pos_integer(),
+          walls: list(coordinate())
         }) ::
           {:error, :invalid_grid_parameters | :invalid_wall_coordinate} | {:ok, t()}
   def new(%{rows: rows, columns: columns, walls: walls})
@@ -34,10 +38,7 @@ defmodule MmoGame.Grid do
     grid =
       Enum.map(0..(rows - 1), fn row ->
         Enum.map(0..(columns - 1), fn col ->
-          case wall?(grid, {row, col}) do
-            {:ok, true} -> %{wall: true}
-            {:ok, false} -> %{wall: false}
-          end
+          wall_map_without_coordinates!(grid, {row, col})
         end)
       end)
 
@@ -46,6 +47,14 @@ defmodule MmoGame.Grid do
 
   def draw(_), do: {:error, :invalid_grid}
 
+  defp wall_map_without_coordinates!(%Grid{} = grid, {row, col}) do
+    case wall?(grid, {row, col}) do
+      {:ok, true} -> %{wall: true}
+      {:ok, false} -> %{wall: false}
+    end
+  end
+
+  @spec default_grid :: {:ok, MmoGame.Grid.t()}
   def default_grid() do
     rows = 10
     colums = 10
@@ -53,22 +62,9 @@ defmodule MmoGame.Grid do
     walls =
       Enum.map(0..(rows - 1), fn row ->
         Enum.map(0..(colums - 1), fn column ->
-          case {row, column} do
-            {row, _} when row in [0, 9] ->
-              %{row: row, column: column, wall: true}
-
-            {_, column} when column in [0, 9] ->
-              %{row: row, column: column, wall: true}
-
-            {4, column} when column in [1, 3, 4, 5, 6, 9] ->
-              %{row: row, column: column, wall: true}
-
-            {row, 4} when row in [4, 5, 6, 7, 9] ->
-              %{row: row, column: column, wall: true}
-
-            _ ->
-              %{row: row, column: column, wall: false}
-          end
+          # returns something like
+          # %{row: row, column: column, wall: true}
+          default_wall_maps_case!(row, column)
         end)
       end)
       |> List.flatten()
@@ -78,7 +74,26 @@ defmodule MmoGame.Grid do
     new(%{rows: rows, columns: colums, walls: walls})
   end
 
-  @spec wall?(t(), {integer(), integer()}) :: {:error, :invalid_coordinate} | {:ok, boolean}
+  defp default_wall_maps_case!(row, column) do
+    case {row, column} do
+      {row, _} when row in [0, 9] ->
+        %{row: row, column: column, wall: true}
+
+      {_, column} when column in [0, 9] ->
+        %{row: row, column: column, wall: true}
+
+      {4, column} when column in [1, 3, 4, 5, 6, 9] ->
+        %{row: row, column: column, wall: true}
+
+      {row, 4} when row in [4, 5, 6, 7, 9] ->
+        %{row: row, column: column, wall: true}
+
+      _ ->
+        %{row: row, column: column, wall: false}
+    end
+  end
+
+  @spec wall?(t(), coordinate()) :: {:error, :invalid_coordinate} | {:ok, boolean}
   def wall?(
         %Grid{rows: rows, columns: columns, walls: walls},
         {row, column}
