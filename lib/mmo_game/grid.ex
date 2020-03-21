@@ -12,11 +12,11 @@ defmodule MmoGame.Grid do
   @type row :: non_neg_integer()
   @type col :: non_neg_integer()
   @type coordinate :: {row, col}
+  @type move_direction :: :up | :down | :left | :right
+  @move_directions [:up, :down, :left, :right]
 
   @enforce_keys [:rows, :columns, :walls]
   defstruct @enforce_keys
-
-  alias MmoGame.Grid
 
   @spec new(%{
           rows: pos_integer(),
@@ -27,28 +27,78 @@ defmodule MmoGame.Grid do
   def new(%{rows: rows, columns: columns, walls: walls})
       when is_integer(rows) and is_integer(columns) and is_list(walls) and
              rows > 0 and columns > 0 do
-    struct(Grid, %{rows: rows, columns: columns, walls: %{}})
+    struct(__MODULE__, %{rows: rows, columns: columns, walls: %{}})
     |> place_walls(walls)
   end
 
   def new(_), do: {:error, :invalid_grid_parameters}
 
-  @spec draw(t()) :: {:ok, [[%{wall: boolean()}]]} | {:error, :invalid_grid}
-  def draw(%Grid{rows: rows, columns: columns} = grid) do
+  defp place_walls(%__MODULE{} = grid, []), do: {:ok, grid}
+
+  defp place_walls(%__MODULE{} = grid, new_walls) do
+    grid =
+      Enum.reduce_while(new_walls, grid, fn wall, acc ->
+        place_wall(acc, wall)
+      end)
+
+    case grid do
+      %__MODULE{} = grid ->
+        {:ok, grid}
+
+      {:error, :invalid_wall_coordinate} ->
+        {:error, :invalid_wall_coordinate}
+    end
+  end
+
+  defp place_wall(%__MODULE{rows: rows, columns: columns, walls: walls} = grid, {row, column})
+       when is_integer(row) and is_integer(column) and
+              row < rows and column < columns and row >= 0 and
+              column >= 0 do
+    updated_walls = Map.put(walls, {row, column}, true)
+    {:cont, Map.put(grid, :walls, updated_walls)}
+  end
+
+  defp place_wall(
+         _grid,
+         _coordinate
+       ),
+       do: {:halt, {:error, :invalid_wall_coordinate}}
+
+  @spec draw(t(), %{optional(MmoGame.Grid.coordinate()) => [Hero.hero_name()]}) ::
+          {:ok,
+           [
+             [
+               %{
+                 required(:wall) => boolean(),
+                 optional(coordinate()) => [{MmoGame.Hero.hero_name(), :hero_dead | :hero_alive}]
+               }
+             ]
+           ]}
+          | {:error, :invalid_grid}
+  def draw(%__MODULE{rows: rows, columns: columns} = grid, heroes_coordinates)
+      when is_map(heroes_coordinates) do
     grid =
       Enum.map(0..(rows - 1), fn row ->
         Enum.map(0..(columns - 1), fn col ->
           wall_map_without_coordinates!(grid, {row, col})
+          |> Map.merge(map_of_heroes_in_coordinate({row, col}, heroes_coordinates))
         end)
       end)
 
     {:ok, grid}
   end
 
-  def draw(_), do: {:error, :invalid_grid}
+  def draw(_, _), do: {:error, :invalid_grid}
+
+  defp map_of_heroes_in_coordinate(coordinate, heroes_coordinates) do
+    case Map.get(heroes_coordinates, coordinate, nil) do
+      nil -> %{}
+      list -> %{heroes: list}
+    end
+  end
 
   # Used for random position on the board
-  defp draw_with_coordinates!(%Grid{rows: rows, columns: columns} = grid) do
+  defp draw_with_coordinates!(%__MODULE{rows: rows, columns: columns} = grid) do
     Enum.map(0..(rows - 1), fn row ->
       Enum.map(0..(columns - 1), fn col ->
         wall_map_with_coordinates!(grid, {row, col})
@@ -56,21 +106,21 @@ defmodule MmoGame.Grid do
     end)
   end
 
-  defp wall_map_without_coordinates!(%Grid{} = grid, {row, col}) do
+  defp wall_map_without_coordinates!(%__MODULE{} = grid, {row, col}) do
     case wall?(grid, {row, col}) do
       {:ok, true} -> %{wall: true}
       {:ok, false} -> %{wall: false}
     end
   end
 
-  defp wall_map_with_coordinates!(%Grid{} = grid, {row, col}) do
+  defp wall_map_with_coordinates!(%__MODULE{} = grid, {row, col}) do
     case wall?(grid, {row, col}) do
       {:ok, true} -> %{row: row, col: col, wall: true}
       {:ok, false} -> %{row: row, col: col, wall: false}
     end
   end
 
-  @spec default_grid :: {:ok, MmoGame.Grid.t()}
+  @spec default_grid :: {:ok, t()}
   def default_grid() do
     rows = 10
     colums = 10
@@ -109,9 +159,9 @@ defmodule MmoGame.Grid do
     end
   end
 
-  @spec random_non_wall_position(MmoGame.Grid.t()) ::
+  @spec random_non_wall_position(t()) ::
           {:ok, coordinate()} | {:error, :invalid_grid}
-  def random_non_wall_position(%Grid{} = grid) do
+  def random_non_wall_position(%__MODULE{} = grid) do
     map_element =
       grid
       |> draw_with_coordinates!()
@@ -124,49 +174,59 @@ defmodule MmoGame.Grid do
 
   def random_non_wall_position(_), do: {:error, :invalid_grid}
 
-  @spec wall?(t(), coordinate()) :: {:error, :invalid_coordinate} | {:ok, boolean}
-  def wall?(
-        %Grid{rows: rows, columns: columns, walls: walls},
-        {row, column}
-      )
-      when is_integer(row) and is_integer(column) and row < rows and column < columns and row >= 0 and
-             column >= 0,
-      do: {:ok, walls[{row, column}] == true}
+  defp wall?(
+         %__MODULE{rows: rows, columns: columns, walls: walls},
+         {row, column}
+       )
+       when is_integer(row) and is_integer(column) and row < rows and column < columns and
+              row >= 0 and
+              column >= 0,
+       do: {:ok, walls[{row, column}] == true}
 
-  def wall?(
-        _grid,
-        _coordinate
-      ),
-      do: {:error, :invalid_coordinate}
+  @spec can_move?(t(), coordinate(), move_direction()) ::
+          {:error, :invalid_move} | {:ok, coordinate()}
+  # I'm considering a hero will never reach grid border (grid always have walls on its border)
+  def can_move?(%__MODULE{} = grid, {_row, _column} = coordinate, direction)
+      when direction in @move_directions do
+    new_coordinate = adjacent_coordinate(coordinate, direction)
+    check_move_and_return(grid, new_coordinate)
+  end
 
-  defp place_walls(%Grid{} = grid, []), do: {:ok, grid}
+  def can_move?(_, _, _), do: {:error, :invalid_move_parameters}
 
-  defp place_walls(%Grid{} = grid, new_walls) do
-    grid =
-      Enum.reduce_while(new_walls, grid, fn wall, acc ->
-        place_wall(acc, wall)
-      end)
-
-    case grid do
-      %Grid{} = grid ->
-        {:ok, grid}
-
-      {:error, :invalid_wall_coordinate} ->
-        {:error, :invalid_wall_coordinate}
+  defp check_move_and_return(%__MODULE{} = grid, {new_row, new_column}) do
+    case wall?(grid, {new_row, new_column}) do
+      {:ok, true} -> {:error, :invalid_move}
+      {:ok, false} -> {:ok, {new_row, new_column}}
     end
   end
 
-  defp place_wall(%Grid{rows: rows, columns: columns, walls: walls} = grid, {row, column})
-       when is_integer(row) and is_integer(column) and
-              row < rows and column < columns and row >= 0 and
-              column >= 0 do
-    updated_walls = Map.put(walls, {row, column}, true)
-    {:cont, Map.put(grid, :walls, updated_walls)}
-  end
+  defp adjacent_coordinate({row, column}, :up), do: {row - 1, column}
+  defp adjacent_coordinate({row, column}, :right), do: {row, column + 1}
+  defp adjacent_coordinate({row, column}, :down), do: {row + 1, column}
+  defp adjacent_coordinate({row, column}, :left), do: {row, column - 1}
 
-  defp place_wall(
-         _grid,
-         _coordinate
-       ),
-       do: {:halt, {:error, :invalid_wall_coordinate}}
+  defp adjacent_coordinate(coordinate, :up_right),
+    do: adjacent_coordinate(coordinate, :up) |> adjacent_coordinate(:right)
+
+  defp adjacent_coordinate(coordinate, :down_right),
+    do: adjacent_coordinate(coordinate, :down) |> adjacent_coordinate(:right)
+
+  defp adjacent_coordinate(coordinate, :down_left),
+    do: adjacent_coordinate(coordinate, :down) |> adjacent_coordinate(:left)
+
+  defp adjacent_coordinate(coordinate, :up_left),
+    do: adjacent_coordinate(coordinate, :up) |> adjacent_coordinate(:left)
+
+  @spec calculate_perimeter!(t(), coordinate()) :: [coordinate()] | no_return()
+  def calculate_perimeter!(%__MODULE{} = grid, coordinate) do
+    # run clockwise starting on top
+    perimeter = [:up, :up_right, :right, :down_right, :down, :down_left, :left, :up_left]
+
+    Enum.map(perimeter, fn direction ->
+      coordinate = adjacent_coordinate(coordinate, direction)
+      check_move_and_return(grid, coordinate) |> elem(1)
+    end)
+    |> Enum.filter(&(&1 != :invalid_move))
+  end
 end
