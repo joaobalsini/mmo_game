@@ -107,6 +107,9 @@ defmodule MmoGame.GameServer do
          {:ok, heroes} <- heroes() do
       attack_range = Grid.calculate_perimeter!(grid, hero_position)
 
+      # Check if all heroes exist, if not, restart process
+      Enum.each(heroes, &find_hero(&1))
+
       heroes
       |> Enum.filter(&(Hero.where!(&1) in attack_range))
       |> Enum.each(&kill_hero/1)
@@ -144,6 +147,9 @@ defmodule MmoGame.GameServer do
   def heroes_coordinates() do
     with {:ok, :game_server_started} <- started?(),
          {:ok, heroes} <- heroes() do
+      # check if any heroes process were killed and restart them if needed
+      Enum.each(heroes, &find_hero(&1))
+
       map_of_heroes_coordinates =
         heroes
         |> Enum.map(&{&1, Hero.where!(&1), Hero.dead!(&1)})
@@ -170,16 +176,31 @@ defmodule MmoGame.GameServer do
     GenServer.call(@id, :heroes)
   end
 
+  # If hero exists on list but crashed, we restart the process here
   defp find_hero(name) do
     with {:ok, :game_server_started} <- started?(),
          {:ok, heroes} <- heroes(),
          hero_name when is_binary(hero_name) <-
-           Enum.find(heroes, &(&1 == name)) do
+           Enum.find(heroes, &(&1 == name)),
+         {:ok, :hero_started} <- Hero.started?(hero_name) do
       {:ok, hero_name}
     else
-      nil -> {:error, :hero_not_found}
-      {:error, any} -> {:error, any}
+      nil ->
+        {:error, :hero_not_found}
+
+      {:error, :hero_not_started} ->
+        # when we have this error, it means we need to restart the hero process
+        restart_hero_process(name)
+
+      {:error, any} ->
+        {:error, any}
     end
+  end
+
+  defp restart_hero_process(name) do
+    {:ok, grid} = grid()
+    {:ok, spawn_position} = Grid.random_non_wall_position(grid)
+    Hero.new(%{name: name, position: spawn_position})
   end
 
   defp can_add_hero?(name) do
