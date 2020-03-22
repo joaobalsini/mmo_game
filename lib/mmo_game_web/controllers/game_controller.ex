@@ -29,10 +29,7 @@ defmodule MmoGameWeb.GameController do
   end
 
   def index(conn, _other) do
-    with {:ok, hero_name} <- MmoGame.generate_random_name() do
-      redirect(conn, to: "/game?name=#{hero_name}")
-    else
-      _any -> render(conn, "index.html", error: "Error drawing the grid")
-    end
+    {:ok, hero_name} = MmoGame.generate_random_name()
+    redirect(conn, to: "/game?name=#{hero_name}")
   end
 end
