@@ -6,10 +6,13 @@ defmodule MmoGame.Application do
   use Application
 
   def start(_type, _args) do
+    :ets.new(:game_server_backup, [:named_table, :public])
+
     # List all child processes to be supervised
     children = [
       # Start the endpoint when the application starts
-      MmoGameWeb.Endpoint
+      MmoGameWeb.Endpoint,
+      MmoGame.GameServer
       # Starts a worker by calling: MmoGame.Worker.start_link(arg)
       # {MmoGame.Worker, arg},
     ]

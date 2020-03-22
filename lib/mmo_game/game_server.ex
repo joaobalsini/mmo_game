@@ -23,6 +23,7 @@ defmodule MmoGame.GameServer do
   ##################
 
   @spec new(MmoGame.Grid.t()) :: {:ok, :game_server_started}
+
   @doc """
   Starts a game with a given grid.
 
@@ -172,7 +173,8 @@ defmodule MmoGame.GameServer do
   defp find_hero(name) do
     with {:ok, :game_server_started} <- started?(),
          {:ok, heroes} <- heroes(),
-         hero_name when is_binary(hero_name) <- Enum.find(heroes, &(&1 == name)) do
+         hero_name when is_binary(hero_name) <-
+           Enum.find(heroes, &(&1 == name)) do
       {:ok, hero_name}
     else
       nil -> {:error, :hero_not_found}
@@ -185,6 +187,28 @@ defmodule MmoGame.GameServer do
       {:error, :hero_not_found} -> {:ok, :can_add_hero}
       {:ok, _hero_name} -> {:error, :hero_already_exists}
       {:error, other} -> {:error, other}
+    end
+  end
+
+  def reset_heroes() do
+    GenServer.call(@id, :reset_heroes)
+  end
+
+  ##################
+  # DEFINE AUTOSTART
+  # WHEN APP STARTS
+  ##################
+  def start_link(_) do
+    with {:ok, grid} <- Grid.default_grid() do
+      ets_heroes = :ets.lookup(:game_server_backup, :heroes)
+
+      heroes =
+        case ets_heroes do
+          [] -> []
+          [{_key, list}] -> list
+        end
+
+      GenServer.start_link(__MODULE__, %{grid: grid, heroes: heroes}, name: __MODULE__)
     end
   end
 
@@ -201,8 +225,18 @@ defmodule MmoGame.GameServer do
 
   @impl true
   @doc false
+  def init(%{grid: %Grid{} = grid, heroes: heroes}) do
+    game_server = struct(__MODULE__, %{grid: grid, heroes: heroes})
+    {:ok, game_server}
+  end
+
+  @impl true
+  @doc false
   def handle_call({:add_hero, name}, _from, %__MODULE__{heroes: current_heroes} = state) do
-    {:reply, {:ok, :hero_added}, Map.put(state, :heroes, [name | current_heroes])}
+    updated_heroes = [name | current_heroes]
+    :ets.insert(:game_server_backup, {:heroes, updated_heroes})
+
+    {:reply, {:ok, :hero_added}, Map.put(state, :heroes, updated_heroes)}
   end
 
   @impl true
@@ -213,12 +247,18 @@ defmodule MmoGame.GameServer do
         %__MODULE__{heroes: current_heroes} = state
       ) do
     updated_heroes = List.delete(current_heroes, name)
+    :ets.insert(:game_server_backup, {:heroes, updated_heroes})
     {:reply, {:ok, :hero_removed}, Map.put(state, :heroes, updated_heroes)}
   end
 
   @impl true
   @doc false
   def handle_call(:state, _from, state), do: {:reply, {:ok, state}, state}
+
+  @impl true
+  @doc false
+  def handle_call(:reset_heroes, _from, state),
+    do: {:reply, {:ok, :reset}, Map.put(state, :heroes, [])}
 
   @impl true
   @doc false

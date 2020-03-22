@@ -4,19 +4,15 @@ defmodule MmoGame.GameServerTest do
   alias MmoGame.Grid
   alias MmoGame.Hero
 
+  setup do
+    on_exit(fn ->
+      MmoGame.GameServer.reset_heroes()
+    end)
+  end
+
   describe "new/1 and started?/0" do
-    test "starts game with given grid" do
-      assert {:error, :game_server_not_started} == GameServer.started?()
-
-      {:ok, grid} = Grid.default_grid()
-      assert {:ok, :game_server_started} == GameServer.new(grid)
+    test "game starts by default" do
       assert {:ok, :game_server_started} == GameServer.started?()
-    end
-
-    test "trying to restart a game that already exists just returns the same thing" do
-      {:ok, grid} = Grid.default_grid()
-      assert {:ok, :game_server_started} == GameServer.new(grid)
-      assert {:ok, :game_server_started} == GameServer.new(grid)
     end
   end
 
@@ -27,11 +23,6 @@ defmodule MmoGame.GameServerTest do
 
       hero_name = "Hero1"
       assert {:ok, :hero_added} == GameServer.add_hero(hero_name)
-    end
-
-    test "returns {:error, :game_server_not_started} if game wasn't started yet" do
-      hero_name = "Hero1"
-      assert {:error, :game_server_not_started} == GameServer.add_hero(hero_name)
     end
 
     test "returns {:error, :hero_already_exists} if try to add hero with the same name again" do
@@ -68,11 +59,6 @@ defmodule MmoGame.GameServerTest do
       assert {:ok, :hero_added} == GameServer.add_hero(hero_name)
     end
 
-    test "returns {:error, :game_server_not_started} if game wasn't started yet" do
-      hero_name = "Hero1"
-      assert {:error, :game_server_not_started} == GameServer.remove_hero(hero_name)
-    end
-
     test "returns {:error, :hero_not_found} if hero doesn't exist" do
       {:ok, grid} = Grid.default_grid()
       assert {:ok, :game_server_started} == GameServer.new(grid)
@@ -107,11 +93,6 @@ defmodule MmoGame.GameServerTest do
       # move hero mannualy to a position where he cannot move up
       {:ok, :moved} = Hero.move(hero_name, {1, 1})
       {:error, :invalid_move} = GameServer.move_hero(hero_name, :up)
-    end
-
-    test "returns {:error, :game_server_not_started} if game wasn't started yet" do
-      hero_name = "Hero1"
-      assert {:error, :game_server_not_started} == GameServer.move_hero(hero_name, :up)
     end
 
     test "returns {:error, :hero_not_found} if hero doesn't exist" do
@@ -173,11 +154,6 @@ defmodule MmoGame.GameServerTest do
       assert {:ok, :hero_alive} = Hero.dead(hero2)
       assert {:ok, :hero_alive} = Hero.dead(hero3)
       assert {:ok, :hero_alive} = Hero.dead(hero4)
-    end
-
-    test "returns {:error, :game_server_not_started} if game wasn't started yet" do
-      hero_name = "Hero1"
-      assert {:error, :game_server_not_started} == GameServer.attack_from_hero(hero_name)
     end
 
     test "returns {:error, :hero_not_found} if hero doesn't exist" do
@@ -248,10 +224,6 @@ defmodule MmoGame.GameServerTest do
       assert {:ok, :game_server_started} == GameServer.new(grid)
 
       assert {:ok, ^grid} = GameServer.grid()
-    end
-
-    test "returns {:error, :game_server_not_started} if game wasn't started yet" do
-      assert {:error, :game_server_not_started} == GameServer.grid()
     end
   end
 end
