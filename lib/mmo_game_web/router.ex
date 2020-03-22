@@ -20,7 +20,7 @@ defmodule MmoGameWeb.Router do
 
     resources "/game", GameController, only: [:index]
 
-    resources "/hero", HeroController do
+    resources "/hero", HeroController, only: [:create] do
       post "/move_up", HeroController, :move_up, as: :move_up
       post "/move_down", HeroController, :move_down, as: :move_down
       post "/move_left", HeroController, :move_left, as: :move_left
