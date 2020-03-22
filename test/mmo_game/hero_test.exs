@@ -35,6 +35,24 @@ defmodule MmoGame.HeroTest do
     end
   end
 
+  describe "stop/1" do
+    test "stops hero genserver if started" do
+      hero_name = "Hero1"
+      hero_position = {1, 1}
+
+      assert {:ok, :hero_started} == Hero.new(%{name: hero_name, position: hero_position})
+
+      assert {:ok, :hero_started} == Hero.started?(hero_name)
+      assert {:ok, :hero_stopped} == Hero.stop(hero_name)
+      assert {:error, :hero_not_started} == Hero.started?(hero_name)
+    end
+
+    test "returns {:error,...} if not started" do
+      hero_name = "Hero1"
+      assert {:error, :hero_not_started} == Hero.stop(hero_name)
+    end
+  end
+
   describe "move/2" do
     test "moves hero to position" do
       hero_name = "Hero1"
@@ -124,10 +142,10 @@ defmodule MmoGame.HeroTest do
       assert {:ok, :hero_alive} == Hero.dead(hero_name)
     end
 
-    test "dead!/1 returns Hero if hero is dead as a boolean", %{
+    test "dead!/1 returns Hero if hero is dead as an atom", %{
       hero_name: hero_name
     } do
-      assert !Hero.dead!(hero_name)
+      assert :hero_alive == Hero.dead!(hero_name)
     end
   end
 end

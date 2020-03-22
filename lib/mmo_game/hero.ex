@@ -37,6 +37,19 @@ defmodule MmoGame.Hero do
     end
   end
 
+  @spec stop(hero_name()) :: {:ok, :hero_stopped} | {:error, :hero_not_started}
+  def stop(name) do
+    case started?(name) do
+      {:ok, :hero_started} ->
+        id = String.to_atom(name)
+        :ok = GenServer.stop(id)
+        {:ok, :hero_stopped}
+
+      {:error, :hero_not_started} ->
+        {:error, :hero_not_started}
+    end
+  end
+
   @spec started?(hero_name()) :: {:error, :hero_not_started} | {:ok, :hero_started}
   def started?(name) do
     case Process.whereis(String.to_atom(name)) do
@@ -129,8 +142,13 @@ defmodule MmoGame.Hero do
 
   @impl true
   @doc false
-  def handle_call(:dead!, _from, %__MODULE__{dead: dead} = hero),
-    do: {:reply, dead, hero}
+  def handle_call(:dead!, _from, %__MODULE__{dead: true} = hero),
+    do: {:reply, :hero_dead, hero}
+
+  @impl true
+  @doc false
+  def handle_call(:dead!, _from, %__MODULE__{dead: false} = hero),
+    do: {:reply, :hero_alive, hero}
 
   @impl true
   @doc false
