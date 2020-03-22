@@ -241,4 +241,17 @@ defmodule MmoGame.GameServerTest do
               }} == GameServer.heroes_coordinates()
     end
   end
+
+  describe "grid/0" do
+    test "returns {:ok, grid} if game has started" do
+      {:ok, grid} = Grid.default_grid()
+      assert {:ok, :game_server_started} == GameServer.new(grid)
+
+      assert {:ok, ^grid} = GameServer.grid()
+    end
+
+    test "returns {:error, :game_server_not_started} if game wasn't started yet" do
+      assert {:error, :game_server_not_started} == GameServer.grid()
+    end
+  end
 end

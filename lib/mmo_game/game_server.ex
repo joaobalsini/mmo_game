@@ -156,8 +156,13 @@ defmodule MmoGame.GameServer do
     end
   end
 
-  defp grid() do
-    GenServer.call(@id, :grid)
+  @spec grid() ::
+          {:ok, Grid.t()}
+          | {:error, :game_server_not_started}
+  def grid() do
+    with {:ok, :game_server_started} <- started?() do
+      GenServer.call(@id, :grid)
+    end
   end
 
   defp heroes() do
