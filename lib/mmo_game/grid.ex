@@ -228,5 +228,7 @@ defmodule MmoGame.Grid do
       check_move_and_return(grid, coordinate) |> elem(1)
     end)
     |> Enum.filter(&(&1 != :invalid_move))
+    ## Add actual coordinate as well
+    |> List.insert_at(-1, coordinate)
   end
 end

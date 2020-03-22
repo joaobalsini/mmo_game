@@ -207,7 +207,8 @@ defmodule MmoGame.GridTest do
                {3, 2},
                {3, 1},
                {2, 1},
-               {1, 1}
+               {1, 1},
+               {2, 2}
              ] == Grid.calculate_perimeter!(grid, {2, 2})
 
       assert [
@@ -217,7 +218,8 @@ defmodule MmoGame.GridTest do
                {2, 2},
                {2, 1},
                {2, 0},
-               {1, 0}
+               {1, 0},
+               {1, 1}
              ] == Grid.calculate_perimeter!(grid, {1, 1})
     end
   end

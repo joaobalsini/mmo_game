@@ -133,7 +133,7 @@ defmodule MmoGame.GameServerTest do
 
       # position manually heroes 2, 3 and 4 around hero1
       {:ok, :moved} = Hero.move(hero1, {2, 2})
-      {:ok, :moved} = Hero.move(hero2, {1, 1})
+      {:ok, :moved} = Hero.move(hero2, {2, 2})
       {:ok, :moved} = Hero.move(hero3, {1, 2})
       {:ok, :moved} = Hero.move(hero4, {3, 3})
 

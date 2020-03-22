@@ -111,6 +111,7 @@ defmodule MmoGame.GameServer do
       Enum.each(heroes, &find_hero(&1))
 
       heroes
+      |> Enum.filter(&(&1 != name))
       |> Enum.filter(&(Hero.where!(&1) in attack_range))
       |> Enum.each(&kill_hero/1)
 
