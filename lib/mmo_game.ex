@@ -15,6 +15,8 @@ defmodule MmoGame do
 
   defdelegate add_hero(name), to: MmoGame.GameServer
   defdelegate remove_hero(name), to: MmoGame.GameServer
+
+  defdelegate move_hero(name, direction), to: MmoGame.GameServer
   defdelegate attack_from_hero(name), to: MmoGame.GameServer
 
   def draw_grid() do
