@@ -17,7 +17,16 @@ defmodule MmoGameWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
-    get "/game", GameController, :index
+
+    resources "/game", GameController, only: [:index]
+
+    resources "/hero", HeroController do
+      post "/move_up", HeroController, :move_up, as: :move_up
+      post "/move_down", HeroController, :move_down, as: :move_down
+      post "/move_left", HeroController, :move_left, as: :move_left
+      post "/move_right", HeroController, :move_right, as: :move_right
+      post "/attack", HeroController, :attack, as: :attack
+    end
   end
 
   # Other scopes may use custom stacks.

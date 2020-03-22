@@ -15,8 +15,35 @@ table tr td {
   height: 75px;
   padding:0px;
   margin:0px;
+  text-align: center; 
+  vertical-align: middle;
 }
 
 td.wall {
   background-color: #555;
+}
+
+p {
+  text-transform: capitalize;
+  margin:0px;
+  
+}
+
+p.dead {
+  text-decoration: line-through;
+}
+
+p.hero {
+  color: green;
+  font-weight: bolder;
+}
+
+p.enemy {
+  color: red;
+}
+
+
+
+form {
+  display: inline;
 }
