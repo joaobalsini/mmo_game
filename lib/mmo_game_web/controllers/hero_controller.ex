@@ -29,7 +29,7 @@ defmodule MmoGameWeb.HeroController do
   def create(conn, %{"hero" => %{"name" => hero_name}}) do
     updated_hero_name =
       case hero_name do
-        "" -> MmoGame.Utils.generate_random_name() |> elem(1)
+        "" -> MmoGame.generate_random_name() |> elem(1)
         hero_name -> hero_name
       end
 
@@ -37,7 +37,7 @@ defmodule MmoGameWeb.HeroController do
   end
 
   def create(conn, _params) do
-    {:ok, updated_hero_name} = MmoGame.Utils.generate_random_name()
+    {:ok, updated_hero_name} = MmoGame.generate_random_name()
     redirect(conn, to: "/game?name=#{updated_hero_name}")
   end
 end

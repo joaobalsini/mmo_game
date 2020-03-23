@@ -1,10 +1,6 @@
 defmodule MmoGame do
   @moduledoc """
-  MmoGame keeps the contexts that define your domain
-  and business logic.
-
-  Contexts are also responsible for managing your data, regardless
-  if it comes from the database, an external API or others.
+  Defines the API of the application.
   """
 
   @spec new_with_default_grid :: {:ok, :game_server_started}
