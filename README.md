@@ -21,7 +21,7 @@ Since we don't have a datatabase, it's pretty easy to start the application loca
 2. Download the dependencies `mix deps.get`
 3. Compile the assets (and return to folder) `cd assets && npm install && cd ..`
 4. Start to service with iex `iex -S mix phx.server`
-5. Go to `http:\\localhost:4000` and have fun.
+5. Go to [http://localhost:4000/](http://localhost:4000/) and have fun.
 
 Other tips: It seems running `npm audit fix` is breaking webpack, so don't run it. Npm will complain about vulnerabilities.
 
