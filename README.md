@@ -95,3 +95,8 @@ Implements all the grid logic, like calculating coordinates, drawing the grid (c
 
 A genserver that keeps state of the hero's state `name`, `position` and `dead` (if here is dead or alive).
 There is no supervisor, but it is implemented manually. Whenever a hero is needed, if his name exists on the GameServer `heroes` list but the process doesn't, we restart the hero genserver.
+
+## Reseting the state
+
+For now, only a server restart will remove the heroes. 
+The live version on heroku has some limitations, it will restart automatically when idle for some time.
