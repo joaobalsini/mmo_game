@@ -14,6 +14,7 @@ config :mmo_game, MmoGameWeb.Endpoint,
   url: [host: "morning-eyrie-68469.herokuapp.com", port: 80],
   secret_key_base: Map.fetch!(System.get_env(), "SECRET_KEY_BASE"),
   cache_static_manifest: "priv/static/cache_manifest.json",
+  check_origin: false,
   server: true
 
 # Do not print debug messages in production
