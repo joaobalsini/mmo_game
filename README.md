@@ -69,8 +69,7 @@ This container is configured to run on heroku. With a few tweaks on the release 
 The ui is really simple. The hero the user is controlling is shown on green and bold text. The enemies are shown on red.
 Whenever a hero dies, we apply the ~~strikethrough~~ effect on the name (you can see on the gif above).
 
-When you load the game page, the service will reload after 1s or after each move/attack of your hero.
-Sometimes, because of this reloading, you might try to move and think it's not working, but it's basically because it started reloading before you clicked the button.
+The UI works with Liveview, so you will move in real time and notify others when you move as well so their UIs are rerendered as soon as you move, attack or another player enters the game.
 
 ### MmoGame: lib/mmo_game.ex
 
