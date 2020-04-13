@@ -12,7 +12,10 @@ config :mmo_game, MmoGameWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "I1IHwV0nPisBSomh2Vr1RT5+kloJ1FPOg8S/Z8b/I95ZLH1mwXuULZRTW7aqqph4",
   render_errors: [view: MmoGameWeb.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: MmoGame.PubSub, adapter: Phoenix.PubSub.PG2]
+  pubsub: [name: MmoGame.PubSub, adapter: Phoenix.PubSub.PG2],
+  live_view: [
+    signing_salt: "zHvGjY09bOfbOgVA1y0pUZv4oiC7RiZF"
+  ]
 
 # Configures Elixir's Logger
 config :logger, :console,

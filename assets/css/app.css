@@ -2,3 +2,4 @@
 
 @import "./phoenix.css";
 @import "./mmo_game.css";
+@import "../node_modules/nprogress/nprogress.css";

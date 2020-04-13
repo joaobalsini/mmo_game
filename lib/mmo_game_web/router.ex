@@ -4,9 +4,10 @@ defmodule MmoGameWeb.Router do
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
-    plug :fetch_flash
+    plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :put_root_layout, {MmoGameWeb.LayoutView, :root}
   end
 
   pipeline :api do
@@ -17,16 +18,8 @@ defmodule MmoGameWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
-
-    resources "/game", GameController, only: [:index]
-
-    resources "/hero", HeroController, only: [:create] do
-      post "/move_up", HeroController, :move_up, as: :move_up
-      post "/move_down", HeroController, :move_down, as: :move_down
-      post "/move_left", HeroController, :move_left, as: :move_left
-      post "/move_right", HeroController, :move_right, as: :move_right
-      post "/attack", HeroController, :attack, as: :attack
-    end
+    resources "/hero", HeroController, only: [:create]
+    live "/game", GameLive
   end
 
   # Other scopes may use custom stacks.

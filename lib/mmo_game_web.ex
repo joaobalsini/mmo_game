@@ -24,6 +24,8 @@ defmodule MmoGameWeb do
       import Plug.Conn
       import MmoGameWeb.Gettext
       alias MmoGameWeb.Router.Helpers, as: Routes
+
+      import Phoenix.LiveView.Controller
     end
   end
 
@@ -42,6 +44,8 @@ defmodule MmoGameWeb do
       import MmoGameWeb.ErrorHelpers
       import MmoGameWeb.Gettext
       alias MmoGameWeb.Router.Helpers, as: Routes
+
+      import Phoenix.LiveView.Helpers
     end
   end
 
@@ -50,6 +54,7 @@ defmodule MmoGameWeb do
       use Phoenix.Router
       import Plug.Conn
       import Phoenix.Controller
+      import Phoenix.LiveView.Router
     end
   end
 

@@ -41,7 +41,9 @@ defmodule MmoGame.MixProject do
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:credo, "~> 1.1", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.0.0-rc.7", only: :dev, runtime: false}
+      {:dialyxir, "~> 1.0.0-rc.7", only: :dev, runtime: false},
+      {:phoenix_live_view, "~> 0.11.1"},
+      {:floki, ">= 0.0.0", only: :test}
     ]
   end
 

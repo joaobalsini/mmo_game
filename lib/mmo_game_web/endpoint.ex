@@ -1,9 +1,13 @@
 defmodule MmoGameWeb.Endpoint do
+  @session_options [store: :cookie, key: "_mmo_game_key", signing_salt: "wwHHSQoq"]
+
   use Phoenix.Endpoint, otp_app: :mmo_game
 
   socket "/socket", MmoGameWeb.UserSocket,
     websocket: true,
     longpoll: false
+
+  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -37,10 +41,7 @@ defmodule MmoGameWeb.Endpoint do
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
   # Set :encryption_salt if you would also like to encrypt it.
-  plug Plug.Session,
-    store: :cookie,
-    key: "_mmo_game_key",
-    signing_salt: "wwHHSQoq"
+  plug Plug.Session, @session_options
 
   plug MmoGameWeb.Router
 end

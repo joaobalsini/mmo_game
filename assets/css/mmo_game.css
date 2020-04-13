@@ -1,4 +1,12 @@
+div.board {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 table {
+  align-self: center;
   table-layout: fixed;
   width: 750px;
   height: 750px;

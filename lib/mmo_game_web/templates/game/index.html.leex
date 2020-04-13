@@ -1,0 +1,31 @@
+<div class="board">
+<%= if @error do %>
+<p class="alert alert-danger"><%= @error%></p>
+<% else %>
+  <table phx-window-keydown="keydown">
+  <%= Enum.map(@drawn_grid, fn row -> %>
+    <tr>
+      <%= Enum.map(row, fn column ->  %>
+        <td class="<%= classnames(%{ "wall" => column.wall }) %>">
+          <%= render_coordinate(column, @hero) %>
+        </td>
+      <% end) %>
+    </tr>
+  <% end) %>
+  </table>
+
+<div>
+  <button class="btn btn-primary mr-1" phx-click="move" phx-value-direction="up">Up</button>
+  <button class="btn btn-primary mr-1" phx-click="move" phx-value-direction="down">Down</button>
+  <button class="btn btn-primary mr-1" phx-click="move" phx-value-direction="left">Left</button>
+  <button class="btn btn-primary mr-1" phx-click="move" phx-value-direction="right">Right</button>
+
+  <button class="btn btn-danger mr-1" phx-click="attack">attack</button>
+</div>
+<% end %>
+
+<div>
+You can use your arrow keys to move and SPACE or ENTER to attack.
+</div>
+</div>
+
