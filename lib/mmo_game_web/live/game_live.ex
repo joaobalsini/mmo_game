@@ -1,6 +1,8 @@
 defmodule MmoGameWeb.GameLive do
   use Phoenix.LiveView
 
+  @topic "heroes"
+
   def render(assigns) do
     Phoenix.View.render(
       MmoGameWeb.GameView,
@@ -10,6 +12,8 @@ defmodule MmoGameWeb.GameLive do
   end
 
   def mount(%{"name" => hero_name}, _session, socket) do
+    MmoGameWeb.Endpoint.subscribe(@topic)
+
     with {:ok, :game_server_started} <- MmoGame.new_with_default_grid(),
          {:ok, :hero_added} <- MmoGame.add_hero(hero_name),
          {:ok, drawn_grid} <- MmoGame.draw_grid() do
@@ -51,6 +55,7 @@ defmodule MmoGameWeb.GameLive do
   def handle_event("attack", _params, socket) do
     hero_name = socket.assigns.hero
     MmoGame.attack_from_hero(hero_name)
+    MmoGameWeb.Endpoint.broadcast_from(self(), @topic, "update_grid", socket)
     {:noreply, update_grid(socket)}
   end
 
@@ -58,6 +63,7 @@ defmodule MmoGameWeb.GameLive do
       when direction in ["up", "down", "left", "right"] do
     hero_name = socket.assigns.hero
     MmoGame.move_hero(hero_name, String.to_atom(direction))
+    MmoGameWeb.Endpoint.broadcast_from(self(), @topic, "update_grid", socket)
     {:noreply, update_grid(socket)}
   end
 
@@ -65,6 +71,7 @@ defmodule MmoGameWeb.GameLive do
       when key in ["ArrowLeft", "ArrowDown", "ArrowUp", "ArrowRight"] do
     hero_name = socket.assigns.hero
     MmoGame.move_hero(hero_name, transform_key_in_direction(key))
+    MmoGameWeb.Endpoint.broadcast_from(self(), @topic, "update_grid", socket)
     {:noreply, update_grid(socket)}
   end
 
@@ -72,11 +79,17 @@ defmodule MmoGameWeb.GameLive do
       when key in ["Enter", " "] do
     hero_name = socket.assigns.hero
     MmoGame.attack_from_hero(hero_name)
+    MmoGameWeb.Endpoint.broadcast_from(self(), @topic, "update_grid", socket)
+
     {:noreply, update_grid(socket)}
   end
 
   def handle_event("keydown", _params, socket) do
     {:noreply, socket}
+  end
+
+  def handle_info(%Phoenix.Socket.Broadcast{event: "update_grid"}, socket) do
+    {:noreply, update_grid(socket)}
   end
 
   defp transform_key_in_direction("ArrowLeft"), do: :left
