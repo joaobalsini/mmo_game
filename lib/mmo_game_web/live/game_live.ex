@@ -23,6 +23,8 @@ defmodule MmoGameWeb.GameLive do
         |> assign(error: nil)
         |> assign(hero: hero_name)
 
+      MmoGameWeb.Endpoint.broadcast_from(self(), @topic, "update_grid", socket)
+
       {:ok, socket}
     else
       {:error, :hero_already_exists} ->
